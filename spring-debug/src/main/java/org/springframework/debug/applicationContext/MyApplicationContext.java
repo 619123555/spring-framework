@@ -14,6 +14,10 @@ public class MyApplicationContext extends ClassPathXmlApplicationContext {
 		super(configLocations);
 	}
 
+	@Override
+	public String getId() {
+		return "testId";
+	}
 
 	// 获取应用系统属性或系统环境信息
 	@Override

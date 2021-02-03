@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:debug="http://www.springframework.org/schema/debug/spring-testTag"
+  	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/debug/spring-testTag http://www.springframework.org/schema/debug/spring-testTag.xsd">
+
+	<debug:testCustomTagObject id="2" userName="userNameTest"></debug:testCustomTagObject>
+</beans>
