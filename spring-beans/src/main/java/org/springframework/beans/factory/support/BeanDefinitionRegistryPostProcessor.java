@@ -26,6 +26,10 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
  * BeanDefinitionRegistryPostProcessor may register further bean definitions
  * which in turn define BeanFactoryPostProcessor instances.
  *
+ * 对BeanFactoryPostProcessor增强,在执行BFPP的postProcessBeanFactory方法前,会先调用BDFPP的postProcessBeanDefinitionRegistry
+ * 如果有这种需要在执行BFPP前进行一些预处理情况时,可以使用这个接口来实现.
+ * 比如configuration,component,component-scan注解.
+ *
  * @author Juergen Hoeller
  * @since 3.0.1
  * @see org.springframework.context.annotation.ConfigurationClassPostProcessor

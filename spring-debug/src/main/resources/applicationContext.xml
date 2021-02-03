@@ -7,4 +7,9 @@
 		<property name="name" value="testName"></property>
 		<property name="age" value="29"></property>
 	</bean>
+
+<!--	<bean class="org.springframework.debug.TestCustomBFPP.CustomBeanFactoryPostProcessor">-->
+<!--	</bean>-->
+<!--	<bean class="org.springframework.debug.TestCustomBPP.CustomBeanPostProcessor">-->
+<!--	</bean>-->
 </beans>
