@@ -11,7 +11,7 @@ public class TestNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
-		// elementName要跟xml的标签名一致,不然解析的时候找不到
+		// elementName要跟xml具体的标签名一致,不然解析的时候找不到
 		registerBeanDefinitionParser("testCustomTagObject", new TestBeanDefinitionParser());
 	}
 }

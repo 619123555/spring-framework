@@ -1,11 +1,8 @@
 package org.springframework.debug.applicationContext;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.debug.TestCustomBFPP.CustomBeanFactoryPostProcessor;
-import org.springframework.debug.TestCustomBFPP.CustomBeanFactoryRegistryPostProcessor;
 import org.springframework.debug.TestCustomBPP.CustomBeanPostProcessor;
 
 /**
@@ -31,14 +28,14 @@ public class MyApplicationContext extends ClassPathXmlApplicationContext {
 		super.initPropertySources();
 	}
 
-	// 在spring预留给用户的扩展方法中,可以将Bean或BeanFactory的后置处理器添加到工厂对象中.
+	// 在spring预留给用户的扩展方法中,可以将Bean或BeanFactory的后置处理器和定义一些BeanDefinition对象添加到工厂对象中.
 	// 或者直接通过xml将BPP或BFPP直接定义为bean也可以.
 	@Override
 	protected void postProcessBeanFactory(
 			ConfigurableListableBeanFactory beanFactory) {
 		beanFactory.addBeanPostProcessor(new CustomBeanPostProcessor());
-		addBeanFactoryPostProcessor(new CustomBeanFactoryPostProcessor());
-		addBeanFactoryPostProcessor(new CustomBeanFactoryRegistryPostProcessor());
+//		addBeanFactoryPostProcessor(new CustomBeanFactoryPostProcessor());
+//		addBeanFactoryPostProcessor(new CustomBeanFactoryRegistryPostProcessor());
 		super.postProcessBeanFactory(beanFactory);
 	}
 }

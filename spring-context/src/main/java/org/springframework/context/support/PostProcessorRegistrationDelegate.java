@@ -57,24 +57,27 @@ final class PostProcessorRegistrationDelegate {
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
-		// 记录已经执行过的BFPP的名称,用来最后判断使用.
+		// 记录已经执行过的BFPP的名称,最后会通过这个集合来判断是否执行过使用.
 		Set<String> processedBeans = new HashSet<>();
 
+		// 判断beanfactory是否是BeanDefinitionRegistry类型，此处是DefaultListableBeanFactory,实现了BeanDefinitionRegistry接口，所以为true
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			// 存放常规的BFPP对象.
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
-			// 存放已经执行过的BeanDefinitionPostProcessor
+			// 存放已经执行过的BDRPP
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
-			// 开始处理用户自定义的后置处理器.
-			// 将BFPP区分为常规BFPP和非常规BFPP,
-			// 并提前执行非常规BFPP的postProcessBeanDefinitionRegistry方法.
+			// 首先处理用户通过addBeanFactoryPostProcessor()方法添加的自定义BFPP(后置处理器).
+			// 将BFPP区分为常规BFPP和非常规BDRPP,并提前执行非常规BDRPP的postProcessBeanDefinitionRegistry方法.
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
-					// 针对configuration, component, component-scan注解做一些处理.
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
+					// 调用BDRPP接口的postProcessBeanDefinitionRegistry()方法,
+					// 需要注意的是该方法传进去的对象是工厂对象,所以理论上可以对工厂对象做任何操作,
+					// 但因为传进去的工厂对象是向上转型为BeanDefinitionRegistry类型后传进去的,
+					// 所以理论上是想让用户只能操作BeanDefinition,也就是说,用户可能会增删一些BeanDefinition到容器中.
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				}
@@ -90,9 +93,8 @@ final class PostProcessorRegistrationDelegate {
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
-			// 开始处理spring内部BFPP
-			// 先处理实现了PriorityOrdered接口的非常规BFPP,
-			// 并提前执行BDRPP的postProcessBeanDefinitionRegistry方法.
+			// 开始处理spring内部管理的(xml配置的Bean或通过注解添加到工厂的)BDRPP
+			// 先处理实现了PriorityOrdered接口的非常规BDRPP,并执行BDRPP的postProcessBeanDefinitionRegistry方法.
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -107,8 +109,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
-			// 再处理一次实现了Ordered接口的非常规BFPP,
-			// 并提前执行BDRPP的postProcessBeanDefinitionRegistry方法.
+			// 再处理一次实现了Ordered接口的非常规BDRPP,并执行BDRPP的postProcessBeanDefinitionRegistry方法.
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				if (!processedBeans.contains(ppName) && beanFactory.isTypeMatch(ppName, Ordered.class)) {
@@ -122,7 +123,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
-			// 再执行其他所有未执行过的非常规BFPP的postProcessBeanDefinitionReigstry方法.
+			// 执行其他所有未执行过的非常规BDRPP的postProcessBeanDefinitionRegistry方法.
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;
@@ -141,7 +142,8 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
-			// 执行所有BFPP的postProcessorBeanFactory方法.
+			// 执行通过addBeanFactoryPostProcess()方法添加的常规DFPP,
+			// 和spring管理的Bean中实现了常规DFPP的对象的postProcessorBeanFactory方法.
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
@@ -153,7 +155,9 @@ final class PostProcessorRegistrationDelegate {
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let the bean factory post-processors apply to them!
-		// 处理spring内部常规的BFPP
+		// 处理spring内部(xml配置的Bean或通过注解添加到工厂的)常规的BFPP.
+		// 此处重复根据类型去BeanFactory中获取是因为在BDRPP中可能会动态的添加一些BeanDefinition
+		// 比如 component-scan 注解.
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
@@ -162,26 +166,33 @@ final class PostProcessorRegistrationDelegate {
 		List<BeanFactoryPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
 		List<String> orderedPostProcessorNames = new ArrayList<>();
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
+		// 做分类.
 		for (String ppName : postProcessorNames) {
 			if (processedBeans.contains(ppName)) {
+				// 跳过之前已经执行过BFPP的.
 				// skip - already processed in first phase above
 			}
 			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				// 实现了PriorityOrdered接口的.
 				priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanFactoryPostProcessor.class));
 			}
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
+				// 实现了Ordered接口的.
 				orderedPostProcessorNames.add(ppName);
 			}
 			else {
+				// 这两个接口都没实现的.
 				nonOrderedPostProcessorNames.add(ppName);
 			}
 		}
 
 		// First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
+		// 处理实现了PriorityOrdered接口的BFPP集合,调用各BFPP的postProcessBeanFactory()方法.
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(priorityOrderedPostProcessors, beanFactory);
 
 		// Next, invoke the BeanFactoryPostProcessors that implement Ordered.
+		// 处理实现了Ordered接口的BFPP集合,调用各BFPP的postProcessBeanFactory()方法.
 		List<BeanFactoryPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String postProcessorName : orderedPostProcessorNames) {
 			orderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));
@@ -190,6 +201,7 @@ final class PostProcessorRegistrationDelegate {
 		invokeBeanFactoryPostProcessors(orderedPostProcessors, beanFactory);
 
 		// Finally, invoke all other BeanFactoryPostProcessors.
+		// 处理没有实现PriorityOrdered和Ordered接口的BFPP集合,调用各BFPP的postProcessBeanFactory()方法.
 		List<BeanFactoryPostProcessor> nonOrderedPostProcessors = new ArrayList<>(nonOrderedPostProcessorNames.size());
 		for (String postProcessorName : nonOrderedPostProcessorNames) {
 			nonOrderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));

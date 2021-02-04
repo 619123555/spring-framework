@@ -11,13 +11,13 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  * @date: 2021/2/3
  * @description: 自定义非常规BeanFactory后置处理器
  */
-public class CustomBeanFactoryRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
+public class CustomBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
 	@Override
 	public void postProcessBeanFactory(
 			ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		System.out.println("BDRPP BFPP start postProcessBeanFactory");
-		System.out.println("BDRPP BFPP end postProcessBeanFactory");
+		System.out.println("BDRPP start postProcessBeanFactory");
+		System.out.println("BDRPP end postProcessBeanFactory");
 	}
 
 
