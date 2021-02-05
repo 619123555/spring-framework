@@ -273,10 +273,12 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
-			// 扫描basePackage,将符合要求的bean定义全部找出来
+			// 扫描basePackage,将符合要求include的类全部找出来,
+			// 默认只找使用了Component,ManagedBean,Named
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			// 设置属性并将ScannedGenericBeanDefinition到BeanFactory
 			for (BeanDefinition candidate : candidates) {
-				// 解析@Scope注解，包括scopeName和proxyMode
+				// 解析@Scope注解,包括scopeName(singleton)和proxyMode(cglib, jdk)
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
 				// 使用beanName生成器来生成beanName

@@ -434,6 +434,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				}
 				if (resource.isReadable()) {
 					try {
+						// 创建一个SimpleMetadataFactory工厂,用来创建元数据阅读器对象.
+						// 通过工厂,为每个class文件创建一个简单元数据阅读器(SimpleMetadataReader).
+						// 该阅读器在创建时会通过spring asm字节码框架,读取class文件的注解元数据信息.
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);

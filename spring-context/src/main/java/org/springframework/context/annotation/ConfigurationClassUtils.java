@@ -121,10 +121,13 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 获取BeanDefinition的元数据(@Configuration注解中设置的属性值(value, proxyBeanMethods(default=true)))
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 如果使用了Configuration注解,并且设置使用代理Bean方法模式,则bean标记为full
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// 如果bean没有使用Configuration注解,但使用了@Component,@ComponentScan,@Import,@ImportResource或者@Bean注解,则bean标记为lite
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}

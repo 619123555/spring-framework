@@ -8,12 +8,12 @@
 	<context:component-scan base-package="org.springframework.debug">
 	</context:component-scan>
 
-	<bean id="testObject" class="org.springframework.debug.applicationContext.TestObject">
-		<property name="name" value="testName"></property>
-		<property name="age" value="29"></property>
-	</bean>
+<!--	<bean id="testObject" class="org.springframework.debug.applicationContext.TestObject">-->
+<!--		<property name="name" value="testName"></property>-->
+<!--		<property name="age" value="29"></property>-->
+<!--	</bean>-->
 
-	<bean class="org.springframework.debug.TestCustomBFPP.CustomBeanFactoryPostProcessor"></bean>
-	<bean class="org.springframework.debug.TestCustomBFPP.CustomBeanDefinitionRegistryPostProcessor"></bean>
-	<bean class="org.springframework.debug.TestCustomBPP.CustomBeanPostProcessor"></bean>
+<!--	<bean class="org.springframework.debug.TestCustomBFPP.CustomBeanFactoryPostProcessor"></bean>-->
+<!--	<bean class="org.springframework.debug.TestCustomBFPP.CustomBeanDefinitionRegistryPostProcessor"></bean>-->
+<!--	<bean class="org.springframework.debug.TestCustomBPP.CustomBeanPostProcessor"></bean>-->
 </beans>

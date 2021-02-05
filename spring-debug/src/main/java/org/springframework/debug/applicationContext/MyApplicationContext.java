@@ -33,7 +33,7 @@ public class MyApplicationContext extends ClassPathXmlApplicationContext {
 	@Override
 	protected void postProcessBeanFactory(
 			ConfigurableListableBeanFactory beanFactory) {
-		beanFactory.addBeanPostProcessor(new CustomBeanPostProcessor());
+//		beanFactory.addBeanPostProcessor(new CustomBeanPostProcessor());
 //		addBeanFactoryPostProcessor(new CustomBeanFactoryPostProcessor());
 //		addBeanFactoryPostProcessor(new CustomBeanFactoryRegistryPostProcessor());
 		super.postProcessBeanFactory(beanFactory);
