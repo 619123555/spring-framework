@@ -520,25 +520,38 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 创建DefaultListableBeanFactory.
+			// 解析xml文件及标签元素.
+			// 生成BeanDefinition对象,放到容器中,后续实例化时使用
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			// 对beanFactory设置一些属性,以便后续使用
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				// 留给子类实现,做一些扩展
+				// 比如添加BFPP,向beanFactory中添加BPP,获取BeanDefinition对象等等
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				// 调用实现了BFPP和BDRPP接口的bean的方法
+				// 优先执行实现了BDRPP接口的bean.
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				// 从BeanFactory中获取实现了BPP的Bean,并添加到工厂中的BPP集合中.
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				// 初始化消息资源(i18n相关)
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 初始化应用程序事件多播器(当有事件触发时,调用多播器的相应的方法,来通知所有监听这个事件的监听器)
+				// 如果BeanFactory中存在名称为applicationEventMulticaster的bean则直接拿过来用.
+				// 如果不存在,则创建一个SimpleApplicationEventMulticaster对象,并放到工厂中.
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
