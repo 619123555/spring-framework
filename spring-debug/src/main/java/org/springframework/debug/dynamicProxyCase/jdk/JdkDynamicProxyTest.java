@@ -7,7 +7,7 @@ import java.lang.reflect.Proxy;
 public class JdkDynamicProxyTest {
 
 	public static void main(String[] args) {
-		System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFile", "true");
+		System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 		Person person = new Person();
 		ClassLoader classLoader = person.getClass().getClassLoader();
 		Class<?>[] interfaces = person.getClass().getInterfaces();
