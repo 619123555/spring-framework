@@ -166,7 +166,14 @@ abstract public class KeyFactory {
 
 	public static KeyFactory create(ClassLoader loader, Class keyInterface, KeyFactoryCustomizer customizer,
 			List<KeyFactoryCustomizer> next) {
+		// 注意.
+		// Generator和Enhancer都继承了AbstractClassGenerator.
+		// Generator是专门用来创建Enhancer成员变量中的EnhancerKey的代理类,所以此时的Class为EnhancerKey.
+		// Enhancer是专门用来创建用户定义的代理类.
+
+		// 为EnhancerKey创建一个简易的代理类生成器,所以只会生成hashCode,equals,toString newInstance方法.
 		Generator gen = new Generator();
+		// 设置接口为EnhancerKey类型.
 		gen.setInterface(keyInterface);
 		// SPRING PATCH BEGIN
 		gen.setContextClass(keyInterface);
@@ -180,7 +187,9 @@ abstract public class KeyFactory {
 				gen.addCustomizer(keyFactoryCustomizer);
 			}
 		}
+		// 设置生成器的类加载器
 		gen.setClassLoader(loader);
+		// 生成EnhancerKey的代理类
 		return gen.create();
 	}
 
@@ -233,6 +242,7 @@ abstract public class KeyFactory {
 		}
 
 		public KeyFactory create() {
+			// 设置了该生成器生成代理类的名字前缀，即接口名Enhancer.EnhancerKey
 			setNamePrefix(keyInterface.getName());
 			return (KeyFactory) super.create(keyInterface.getName());
 		}

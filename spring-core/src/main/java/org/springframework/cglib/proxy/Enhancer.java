@@ -100,6 +100,8 @@ public class Enhancer extends AbstractClassGenerator {
 
 	private static final Source SOURCE = new Source(Enhancer.class.getName());
 
+	// 创建代理类时,是使用KeyFactory创建的.
+	// KeyFactory.HASH_ASM_TYPE创建是代理类时创建HashCode方法的策略.
 	private static final EnhancerKey KEY_FACTORY =
 			(EnhancerKey) KeyFactory.create(EnhancerKey.class, KeyFactory.HASH_ASM_TYPE, null);
 

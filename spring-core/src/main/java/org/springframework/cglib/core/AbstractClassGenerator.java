@@ -104,6 +104,8 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 				throw new IllegalArgumentException("classLoader == null is not yet supported");
 			}
 			this.classLoader = new WeakReference<ClassLoader>(classLoader);
+			// 创建代理类Class对象的入口.
+			// 这个回调函数的作用是在缓存中没获取到值时,调用传入的生成器对象来生成对应的代理类并返回.
 			Function<AbstractClassGenerator, Object> load =
 					new Function<AbstractClassGenerator, Object>() {
 						public Object apply(AbstractClassGenerator gen) {
@@ -127,10 +129,12 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 		}
 
 		public Object get(AbstractClassGenerator gen, boolean useCache) {
+			// 如果不用缓存(默认使用)
 			if (!useCache) {
 				return gen.generate(ClassLoaderData.this);
 			}
 			else {
+				// 使用代理类生成器获取返回值
 				Object cachedValue = generatedClasses.get(gen);
 				return gen.unwrapCachedValue(cachedValue);
 			}
@@ -300,7 +304,11 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 
 	protected Object create(Object key) {
 		try {
+			// 获取到当前生成器的类加载器
 			ClassLoader loader = getClassLoader();
+			// 当前类加载器对应的缓存.
+			// Key为类加载器对象,value为ClassLoaderData.
+			// value对象中包含的是具体的处理逻辑,由两个实现了函数式接口组成.
 			Map<ClassLoader, ClassLoaderData> cache = CACHE;
 			ClassLoaderData data = cache.get(loader);
 			if (data == null) {
@@ -308,18 +316,26 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 					cache = CACHE;
 					data = cache.get(loader);
 					if (data == null) {
+						// 将目前的缓存数据,添加到新的缓存对象中,并清除已经没有强引用指向的缓存对象.
 						Map<ClassLoader, ClassLoaderData> newCache = new WeakHashMap<ClassLoader, ClassLoaderData>(cache);
+						// 创建当前类加载器对应的ClassLoaderData,并初始化两个函数式对象.
 						data = new ClassLoaderData(loader);
 						newCache.put(loader, data);
+						// 刷新缓存
 						CACHE = newCache;
 					}
 				}
 			}
+			// 设置一个全局key
 			this.key = key;
+			// 调用ClassLoaderData对象的get方法,并将当前生成器对象和是否使用缓存标识传进去(System.getProperty("cglib.useCache", "true")).
+			// 返回生成好的Class对象.
 			Object obj = data.get(this, getUseCache());
+			// 如果为class则实例化class并返回我们需要的代理类.
 			if (obj instanceof Class) {
 				return firstInstance((Class) obj);
 			}
+			// 如果不是则说明是实体,则直接执行另一个方法返回实体.
 			return nextInstance(obj);
 		}
 		catch (RuntimeException | Error ex) {
@@ -333,6 +349,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 	protected Class generate(ClassLoaderData data) {
 		Class gen;
 		Object save = CURRENT.get();
+		// 当前的代理类生成器存入ThreadLocal中
 		CURRENT.set(this);
 		try {
 			ClassLoader classLoader = data.getClassLoader();
@@ -342,12 +359,17 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 						"Please file an issue at cglib's issue tracker.");
 			}
 			synchronized (classLoader) {
+				// 生成代理类名字
 				String name = generateClassName(data.getUniqueNamePredicate());
+				// 缓存中存入这个名字
 				data.reserveName(name);
+				// 对当前代理类生成器设置类名
 				this.setClassName(name);
 			}
+			// 尝试从缓存中获取类
 			if (attemptLoad) {
 				try {
+					// 能获取到就直接返回,因为可能在并发情况下出现其他线程已经生成并加载过了.
 					gen = classLoader.loadClass(getClassName());
 					return gen;
 				}
@@ -355,7 +377,9 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 					// ignore
 				}
 			}
+			// 生成字节码
 			byte[] b = strategy.generate(this);
+			// 获取到字节码代表的class的名字
 			String className = ClassNameReader.getClassName(new ClassReader(b));
 			ProtectionDomain protectionDomain = getProtectionDomain();
 			synchronized (classLoader) { // just in case
